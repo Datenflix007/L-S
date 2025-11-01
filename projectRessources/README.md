@@ -39,28 +39,19 @@ und Antwortmöglichkeiten übermittelt und in der Schüleranwendung ansprechend 
 Dietrich, Tobias| tobias.dietrich@uni-jena.de|Lehramt Gymnasium Informatik + Geschichte|8 (+1)|
 Staacke, Felix| felix.staacke@uni-jena.de|Lehramt Gymnasium Informatik + Geschichte|8 (+1)|
 
-<!--
-[Link zu dem Projektzeitkonto](https://unijena365-my.sharepoint.com/:x:/g/personal/felix_staacke_uni-jena_de/Ee5Oq1yOAN1ItA_k5OsrSXoBwxpfWe7z6X3e8CSyIgh31A?e=URZSbA)
-<br />
-[Link zu dem Einwicklungsprozess](https://unijena365-my.sharepoint.com/:wb:/g/personal/felix_staacke_uni-jena_de/ERBWzKIxEsxMsIARGG9ic58B01yIK4XkO1PNgNMFB4Exxw?e=BDnqYl)
-
-[Link zu dem nutzerbasierten Plan](https://unijena365-my.sharepoint.com/:wb:/g/personal/felix_staacke_uni-jena_de/ETAsCKEeUyNHmNlCKG9Y9r0Bdey-_pL3BKydOm3hhPq6DA?e=rfKrD5)
-
--->
 ## 3. Projektplanung
 
 ### 3.1 Meetings
 Im Verlaufe des Semesters wurden wöchentliche Meetings zwischen Herrn Hohmuth, Herrn DIetrich und Herrn Staacke abgehalten. Dbaie wurden 
-[Meeting-Mitschriften](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/docu/-/blob/main/weeklyMeetings/README.md?ref_type=heads) angefertigt. 
 
 ### 3.2 GUI-Prozess-Plan
 
-![GUI](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/docu/-/raw/main/modelledWorkflow/gui.svg)
+![GUI](modelledWorkflow/gui.svg)
 **Abbildung:** *GUI-Prozessplan [^1]*
 
 ### 3.3 Datenbank - ER-Diagramm
 Eine erste Hürde in dem Planungsprozess stellte die KOnzeption der Datenverwaltung dar. Anfangs gedachten Herr Dietrich und Herr Staacke, die Daten in einzlene Dateien zu verwalten und diese stets durch einen Handler auszulesen und zu schreiben. Nach mehrfachen Anraten und Problemen in der Implementierung adaptierten die beiden Studenten die Idee, eine [SQLite](https://sqlite.org/) Datenbank anzulegen. In der darauffolgenden Planung erstellten beide folgendes ``ER-Diagramm`` als Grundlage für die Implementierung. 
-![ER-Diagramm](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/docu/-/raw/main/modelledWorkflow/er.png)
+![ER-Diagramm](modelledWorkflow/er.png)
 **Abbildung:** *ER-Diagramm [^2]*
 
 Als kommunikative Klasse zwischen dem implementierten Server und der Datenbank-Datei dient die Klasse ``DatabaseHandler.java``. Diese liest aus der Datenbank und liefert Ergebnisse zu rück und koordiniert den schreibenden Zugriff. (``DatabaseHandler.java`` ist sozusagen das Datenbankmanagementsystem unseres Projektes).
@@ -68,35 +59,24 @@ Als kommunikative Klasse zwischen dem implementierten Server und der Datenbank-D
 **Anmerkung:** Die umgesetzte Datenbank arbeitet aktuell mit dummy Daten, die von der LLM [Codex](https://openai.com/de-DE/codex/) erzeugt wurden. Wenn sich das Repo installiert wird, dann muss diese Datenbank erstmal erzeugt werden und dummy-Daten eingegeben werden. Dazu wurde die Klasse ``src/backend/serverdummy_App.java`` erstellt, die mit dem Bash-Skript ``dummy_setDB.bat`` ausführbar ist. Diese Datei erstellt die Datenbankdatei ``data/lues.db`` und befüllt diese mit dummy-Daten.
 
 ### 3.4 API-Authentifikation
-![API-Authentifikation](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/docu/-/raw/main/modelledWorkflow/authentification.png?ref_type=heads)
+![API-Authentifikation](modelledWorkflow/authentification.png)
 **Abbildung:** *API-Authentifikation [^3]*
 
 Die Kommunikation zwischen ``src/backend/Server.java`` und ``src/backend/Client.java`` geschieht wie folgt:
 - der ``src/backend/client/Client.java``-Instanzen fragen über die Netzwerkbasisadressen laufende ``src/backend/server/Server.java``-Instanzen an
 - die laufende Server Instanz antwortet dann der IPv4 Adresse der anfragenden Client-Instanz
 - alle geantworteten Server-Instanzen werden dann in der CLient UI in der Serverübersicht dargestellt
-- Nach Serverauswahl und Tokeneingabe wird über die API-Klasse ``Message.java`` zuerst nur der Token übergeben; später wird mit genau dieser API-Klasse die Kommuniaktion übernommen (s. hierzu die Planung [Websocket-Protokoll](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/docu/-/blob/main/WebsocketProtocoll.md?ref_type=heads))
+- Nach Serverauswahl und Tokeneingabe wird über die API-Klasse ``Message.java`` zuerst nur der Token übergeben; später wird mit genau dieser API-Klasse die Kommuniaktion übernommen (s. hierzu die Planung [Websocket-Protokoll](WebsocketProtocoll.md))
 
 
 ### 3.5 Konvention über interne Repräsentation
-[zu der Konvention über die interne Aufgabentyprepräsentation](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/docu/-/blob/main/KonventionAufgabenTypen.md?ref_type=heads)
+[zu der Konvention über die interne Aufgabentyprepräsentation](KonventionAufgabenTypen.md)
 
 ### 3.6 Socket Communication
-[zu der Socket Kommunikations Planung](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/docu/-/blob/main/WebsocketProtocoll.md?ref_type=heads)
+[zu der Socket Kommunikations Planung](WebsocketProtocoll.md)
 
 ## 4. Entwicklungsprozess
-|Nr|Beschreibung|von|bis|Beaufragter|Anmerkung|
-|-|-|-|-|-|-|
-|1 |[Database Handler](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/lues/-/issues/1) |26.07.25 |06.08.25 |[Felix](https://git.uni-jena.de/ra78tit) | | | | |
-|2 |[Websocket-Server-Client-Protocoll](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/lues/-/issues/2)|26.07.25 |21.08.25 |[Felix](https://git.uni-jena.de/ra78tit) | |
-|3 |[GUI-Anmeldemaske-Client](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/lues/-/issues/3) |26.07.25 |30.10.25 |[Tobias](https://git.uni-jena.de/le56qiv) | |
-|4 |[Temporäre Datei löschen](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/lues/-/issues/4) |09.08.25 |30.10.25 |[Tobias](https://git.uni-jena.de/le56qiv) | |
-|5 |[DB an Server anbinden](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/lues/-/issues/5) |09.08.25. |16.10.25 |[Felix](https://git.uni-jena.de/ra78tit) | |
-|6 |[Korrekturmodus implementiern](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/lues/-/issues/6) |09.08.25 |16.10.25 |[Felix](https://git.uni-jena.de/ra78tit) | |
-|7 |[Konvention über Aufgabentypen-Repräsentation](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/lues/-/issues/7) |09.08.25 |30.10.25 |[Felix](https://git.uni-jena.de/ra78tit) | |
-|8 |[Frontend über Backend ziehen]()| 16.10.25|30.10.25|[Tobias](https://git.uni-jena.de/le56qiv) | |
-|9|[Bug Research](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/lues/-/issues/9) |16.10.25|30.10.25|[Tobias](https://git.uni-jena.de/le56qiv) | |
-|10|[Dokumentation überarbeiten](https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/lues/-/issues/10)|16.10.25|30.10.25|[Felix](https://git.uni-jena.de/ra78tit)|16.10.25|30.10.25| |
+es wurde in dem FSU internen Gitlab Ticket System gearbeitet
  
 
 ### 4.1 Entwicklungsschwerpunkt Felix
@@ -106,10 +86,13 @@ Die Kommunikation zwischen ``src/backend/Server.java`` und ``src/backend/Client.
 - Broadcast-Anfrage an Server vom Client --> später vom Server zum Client nach Anmerkung von Herrn Hohmuth, sodass sich der Server über die Netzwerkbasisadresse offenbart
 - nach Input von Herrn Hohmuth recherche nach API zwischen Server und Client --> um passgenau API anwenden zu können Erstellung der Klasse ``Message.java``
 - Database und DatabaseHandler in den MainBranch gemerged
-- in Konsole (serverseitig) konnte der Test in der Datenbank geladen werden und im Netzwerk gehostet werden --> in der Konsole des Clients konnten Aufgaben in textueller Form bereits angezeigt werden siehe hierzu [Backup: Console only] ( https://git.uni-jena.de/fusion/teaching/thesis/projektarbeit-tobias-friedrich-und-felix-staacke/lues/-/tree/backup_console_only_backend?ref_type=heads)
+- in Konsole (serverseitig) konnte der Test in der Datenbank geladen werden und im Netzwerk gehostet werden --> in der Konsole des Clients konnten Aufgaben in textueller Form bereits angezeigt werden siehe hierzu Backup: Console only
 - Implementierung Korrekturmodus --> kleinere Änderungen an der Tabellenstruktur nötig
 - von Komilitonen (Felix Wiedemann) einen Test zur Verfügung stellen lassen (siehe hierzu Test 5a MBI)
 - Dashboard, Warteraum, Notenübersicht und Korrekkturmodus UI mit KI erstellt (erstmal temporär) --> sollte durch graphische Oberfläche von Tobias Dietrich ersetzt werden
+- Timer-Logik
+- Editor-Logik
+- Editor schnittstelle mittels JavaScript zur DB Datei ermöglichen
 
 ### 4.2 Entwicklungsschwerpunkt Tobias
 - Einarbeitung in ``Java Swing``
