@@ -1,0 +1,2 @@
+javac ClientDiscovery.java
+java ClientDiscovery

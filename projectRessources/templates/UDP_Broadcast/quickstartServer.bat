@@ -1,0 +1,2 @@
+javac ServerBroadcast.java
+java ServerBroadcast

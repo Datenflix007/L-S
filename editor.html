@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LÜS-Editor</title>
+  <link rel="icon" type="image/png" href="data/icon.png" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-gradient-start: #0b1220;
+      --bg-gradient-end: #111c32;
+      --panel-bg: rgba(20, 28, 47, 0.9);
+      --panel-alt: rgba(17, 25, 42, 0.8);
+      --border-color: rgba(78, 102, 163, 0.28);
+      --text-primary: #f2f6ff;
+      --text-secondary: #8ca1d2;
+      --text-muted: #5f6f99;
+      --accent: #11c592;
+      --accent-strong: #0aa574;
+      --highlight: #3250a8;
+      --surface-elevated: rgba(24, 34, 59, 0.85);
+      --danger: #ff6b81;
+      --warning: #f7b731;
+      --success: #35d69a;
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, rgba(35, 52, 110, 0.35) 0%, transparent 55%),
+                  linear-gradient(160deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      color: var(--text-primary);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+      padding: 24px;
+      gap: 24px;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 20% 20%, rgba(62, 104, 255, 0.12), transparent 45%),
+                  radial-gradient(circle at 80% 30%, rgba(27, 197, 167, 0.16), transparent 35%);
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 320px minmax(720px, 1fr);
+      gap: 24px;
+      width: 100%;
+      max-width: 1440px;
+    }
+
+    aside.sidebar {
+      background: var(--panel-bg);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      box-shadow: 0 28px 60px rgba(8, 12, 24, 0.45);
+      backdrop-filter: blur(18px);
+    }
+
+    .sidebar-header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .sidebar-header h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .sidebar-header p {
+      margin: 4px 0 0;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .logo-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      background: linear-gradient(140deg, var(--accent), rgba(17, 197, 146, 0.22));
+      display: grid;
+      place-items: center;
+      color: #0c172b;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      font-size: 1rem;
+    }
+
+    .logo-badge-media {
+      width: 40px;
+      height: 40px;
+      border-radius: 18px;
+      background: linear-gradient(140deg, var(--accent), rgba(17, 197, 146, 0.22));
+      display: grid;
+      place-items: center;
+      color: #0c172b;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      font-size: 1rem;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      color: var(--text-primary);
+      background: rgba(53, 78, 128, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(12, 18, 35, 0.25);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      box-shadow: 0 14px 30px rgba(17, 197, 146, 0.28);
+      color: #041126;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+    }
+
+    button.accent {
+      background: rgba(49, 84, 190, 0.55);
+      border-color: rgba(71, 108, 214, 0.45);
+    }
+
+    button.accent.small {
+      font-size: 0.8rem;
+      padding: 6px 12px;
+    }
+
+    button.ghost {
+      background: transparent;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .test-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .test-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .test-list::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .test-item {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(19, 30, 53, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.2s ease, border 0.2s ease;
+    }
+
+    .test-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(17, 197, 146, 0.45);
+    }
+
+    .test-item.active {
+      background: rgba(17, 197, 146, 0.16);
+      border-color: rgba(17, 197, 146, 0.45);
+      box-shadow: 0 10px 26px rgba(17, 197, 146, 0.18);
+    }
+
+    .test-item-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .test-item-meta {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .import-panel {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(21, 34, 61, 0.72);
+      border: 1px dashed rgba(109, 134, 200, 0.5);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .import-panel.hidden {
+      display: none;
+    }
+
+    .task-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-buttons button {
+      justify-content: flex-start;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(22, 33, 56, 0.75);
+    }
+
+    .task-buttons button::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(17, 197, 146, 0.15);
+    }
+
+    main.main {
+      background: var(--surface-elevated);
+      border-radius: 24px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 32px 60px rgba(6, 10, 24, 0.5);
+      backdrop-filter: blur(16px);
+    }
+
+    header.topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 18px;
+    }
+
+    .test-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+
+    .test-meta label {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .test-meta input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 16, 32, 0.45);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      transition: border 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .test-meta input:focus {
+      outline: none;
+      border-color: rgba(17, 197, 146, 0.6);
+      box-shadow: 0 0 0 3px rgba(17, 197, 146, 0.18);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(420px, 1fr) minmax(360px, 1fr);
+      gap: 24px;
+      height: calc(100% - 20px);
+    }
+
+    section.editor-panel,
+    section.preview-panel {
+      background: rgba(11, 18, 34, 0.6);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 520px;
+    }
+
+    section.editor-panel h2,
+    section.preview-panel h2 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .task-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-right: 6px;
+    }
+
+    .task-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .task-container::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(74, 98, 164, 0.35);
+    }
+
+    .empty-message {
+      border-radius: 18px;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      background: rgba(18, 27, 48, 0.55);
+      padding: 24px;
+      text-align: center;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .empty-message p {
+      margin: 0;
+    }
+
+    .task-card {
+      border-radius: 18px;
+      background: rgba(18, 27, 48, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 18px 32px rgba(5, 9, 20, 0.28);
+      transition: transform 0.18s ease, border 0.2s ease;
+    }
+
+    .task-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(17, 197, 146, 0.3);
+    }
+
+    .task-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .task-number {
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-size: 0.82rem;
+    }
+
+    .task-type-chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(71, 108, 214, 0.24);
+      border: 1px solid rgba(71, 108, 214, 0.34);
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #a9bdf0;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .task-card textarea,
+    .task-card input[type="text"] {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(8, 12, 26, 0.6);
+      color: var(--text-primary);
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      resize: vertical;
+      min-height: 56px;
+      transition: border 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .task-card textarea:focus,
+    .task-card input[type="text"]:focus {
+      outline: none;
+      border-color: rgba(17, 197, 146, 0.55);
+      box-shadow: 0 0 0 3px rgba(17, 197, 146, 0.14);
+    }
+
+    .field-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .option-row input[type="text"] {
+      flex: 1;
+      min-height: 44px;
+    }
+
+    .option-row button {
+      padding: 10px;
+      border-radius: 10px;
+      min-width: 42px;
+      background: rgba(208, 73, 96, 0.25);
+      border-color: rgba(255, 107, 129, 0.38);
+      color: #ff9aa9;
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .preview-meta {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-align: right;
+    }
+
+    .preview-content {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .preview-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .preview-content::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(109, 136, 214, 0.35);
+    }
+
+    .preview-card {
+      border-radius: 16px;
+      padding: 18px 20px;
+      background: rgba(17, 26, 46, 0.76);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .preview-card h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    .preview-card p {
+      margin: 0;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .preview-options {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .preview-options li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(11, 18, 34, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+    }
+
+    .preview-options input {
+      pointer-events: none;
+    }
+
+    .status-bar {
+      position: fixed;
+      inset: auto 24px 24px 24px;
+      padding: 14px 18px;
+      background: rgba(11, 18, 34, 0.72);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      box-shadow: 0 20px 40px rgba(5, 9, 20, 0.35);
+      backdrop-filter: blur(12px);
+      display: none;
+      z-index: 20;
+    }
+
+    .status-bar.visible {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      box-shadow: 0 0 0 4px rgba(140, 161, 210, 0.14);
+    }
+
+    .status-bar.success .status-dot {
+      background: var(--success);
+      box-shadow: 0 0 0 4px rgba(53, 214, 154, 0.18);
+    }
+
+    .status-bar.error .status-dot {
+      background: var(--danger);
+      box-shadow: 0 0 0 4px rgba(255, 107, 129, 0.2);
+    }
+
+    .status-bar.warning .status-dot {
+      background: var(--warning);
+      box-shadow: 0 0 0 4px rgba(247, 183, 49, 0.18);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 1280px) {
+      body {
+        padding: 16px;
+      }
+
+      .app {
+        grid-template-columns: 280px 1fr;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      section.preview-panel {
+        min-height: 380px;
+      }
+    }
+
+    @media (max-width: 980px) {
+      body {
+        padding: 12px;
+      }
+
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      aside.sidebar {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      header.topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .actions {
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="data/icon.png"  style="width: 52px;
+      height: 52px;" alt="LÜS">
+        <div>
+          <h1>Test-Editor</h1>
+          <p>Testate erstellen, importieren &amp; exportieren</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Verbindung</h2>
+        <button class="primary" id="connectDbBtn">Datenbank verbinden</button>
+        <button class="ghost" id="reloadTestsBtn" disabled>Tests neu laden</button>
+        <p class="hint" id="dbStatus">Keine Datenbank geladen.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2>Testauswahl</h2>
+          <button class="accent small" id="toggleImportBtn">Importieren</button>
+        </div>
+        <div class="test-list" id="testList"></div>
+        <div class="import-panel hidden" id="importPanel">
+          <p><strong>Test importieren</strong></p>
+          <p class="hint">
+            Waehle eine <code>.json</code>-Datei mit Testdaten. Der Test wird direkt in
+            die Datenbank eingefuegt und anschliessend geladen.
+          </p>
+          <button class="primary" id="importChooseBtn">JSON auswaehlen</button>
+          <button class="ghost" id="importCancelBtn">Abbrechen</button>
+          <p class="hint">
+            Erwartetes Format:
+            <code>{"name":"Deutsch Test 5a","subject":"Deutsch","class":"5a","tasks":[...]}</code>
+          </p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Aufgabe hinzufuegen</h2>
+        <div class="task-buttons" id="addTaskButtons">
+          <button data-type="Frei">Texteingabe</button>
+          <button data-type="SingleChoice">Single Choice</button>
+          <button data-type="MultiChoice">Multiple Choice</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="test-meta">
+          <div>
+            <label for="testNameInput">Testname</label>
+            <input id="testNameInput" type="text" placeholder="z. B. Deutsch Test 5a" />
+          </div>
+          <div>
+            <label for="testSubjectInput">Fach</label>
+            <input id="testSubjectInput" type="text" placeholder="z. B. Deutsch" />
+          </div>
+          <div>
+            <label for="testClassInput">Klasse</label>
+            <input id="testClassInput" type="text" placeholder="z. B. 5a" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="saveTestBtn" class="primary" disabled>Speichern</button>
+          <button id="exportBtn" class="accent" disabled>als .json exportieren</button>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <section class="editor-panel">
+          <h2>Aufgaben</h2>
+          <div class="task-container" id="taskContainer">
+            <div class="empty-message" id="taskEmptyState">
+              <p>Kein Test geladen.</p>
+              <p class="hint">Bitte waehle einen vorhandenen Test oder importiere eine JSON-Datei.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="preview-panel">
+          <div class="preview-header">
+            <h2>Vorschau</h2>
+            <div class="preview-meta" id="previewMeta">-</div>
+          </div>
+          <div class="preview-content" id="previewContent">
+            <p class="hint">Die Vorschau aktualisiert sich automatisch beim Bearbeiten.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="statusBar" class="status-bar" role="status" aria-live="polite">
+    <span class="status-dot"></span>
+    <span id="statusMessage"></span>
+  </div>
+
+  <input type="file" id="dbFileInput" accept=".db,.sqlite" hidden />
+  <input type="file" id="importFileInput" accept=".json" hidden />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+  <script>
+    const state = {
+      SQL: null,
+      db: null,
+      dbHandle: null,
+      canWrite: false,
+      tests: [],
+      currentTest: null,
+      hasUnsavedChanges: false,
+      statusTimer: null
+    };
+
+    const ui = {
+      connectBtn: document.getElementById("connectDbBtn"),
+      reloadBtn: document.getElementById("reloadTestsBtn"),
+      dbStatus: document.getElementById("dbStatus"),
+      testList: document.getElementById("testList"),
+      toggleImportBtn: document.getElementById("toggleImportBtn"),
+      importPanel: document.getElementById("importPanel"),
+      importChooseBtn: document.getElementById("importChooseBtn"),
+      importCancelBtn: document.getElementById("importCancelBtn"),
+      importFileInput: document.getElementById("importFileInput"),
+      dbFileInput: document.getElementById("dbFileInput"),
+      testNameInput: document.getElementById("testNameInput"),
+      testSubjectInput: document.getElementById("testSubjectInput"),
+      testClassInput: document.getElementById("testClassInput"),
+      saveBtn: document.getElementById("saveTestBtn"),
+      exportBtn: document.getElementById("exportBtn"),
+      taskContainer: document.getElementById("taskContainer"),
+      taskEmptyState: document.getElementById("taskEmptyState"),
+      previewMeta: document.getElementById("previewMeta"),
+      previewContent: document.getElementById("previewContent"),
+      statusBar: document.getElementById("statusBar"),
+      statusMessage: document.getElementById("statusMessage"),
+      addTaskButtons: document.getElementById("addTaskButtons")
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initialiseSql()
+        .then(attachEventListeners)
+        .catch((error) => {
+          console.error(error);
+          showStatus("SQL.js konnte nicht geladen werden. Bitte Netzwerkverbindung pruefen.", "error", 10000);
+        });
+    });
+
+    async function initialiseSql() {
+      showStatus("SQL-Engine wird initialisiert ...", "info");
+      state.SQL = await initSqlJs({
+        locateFile: (file) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${file}`
+      });
+      showStatus("Bereit. Bitte Datenbank verbinden.");
+    }
+
+    function attachEventListeners() {
+      ui.connectBtn.addEventListener("click", connectDatabase);
+      ui.reloadBtn.addEventListener("click", () => {
+        if (!state.db) return;
+        loadTestsFromDb();
+        showStatus("Testliste aktualisiert.", "success");
+      });
+      ui.toggleImportBtn.addEventListener("click", toggleImportPanel);
+      ui.importChooseBtn.addEventListener("click", () => ui.importFileInput.click());
+      ui.importCancelBtn.addEventListener("click", () => toggleImportPanel(false));
+      ui.importFileInput.addEventListener("change", handleImportSelection);
+      ui.dbFileInput.addEventListener("change", handleDbFileSelection);
+      ui.saveBtn.addEventListener("click", () => saveCurrentTest());
+      ui.exportBtn.addEventListener("click", exportCurrentTest);
+      ui.testNameInput.addEventListener("input", (event) => updateMetaField("name", event.target.value));
+      ui.testSubjectInput.addEventListener("input", (event) => updateMetaField("subject", event.target.value));
+      ui.testClassInput.addEventListener("input", (event) => updateMetaField("className", event.target.value));
+      ui.addTaskButtons.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-type]");
+        if (!button) return;
+        addTask(button.dataset.type);
+      });
+      window.addEventListener("beforeunload", (event) => {
+        if (state.hasUnsavedChanges) {
+          event.preventDefault();
+          event.returnValue = "";
+        }
+      });
+    }
+
+    async function connectDatabase() {
+      if (!state.SQL) {
+        showStatus("SQL.js ist noch nicht bereit.", "warning");
+        return;
+      }
+      if (window.showOpenFilePicker) {
+        try {
+          const [handle] = await window.showOpenFilePicker({
+            types: [{
+              description: "SQLite-Datenbank",
+              accept: { "application/octet-stream": [".db", ".sqlite"] }
+            }],
+            multiple: false
+          });
+          const file = await handle.getFile();
+          await loadDatabaseFromFile(file, handle);
+          state.canWrite = true;
+          state.dbHandle = handle;
+          showStatus(`Datenbank geladen: ${file.name}`, "success");
+        } catch (error) {
+          if (error && error.name !== "AbortError") {
+            console.error(error);
+            showStatus("Datenbank konnte nicht geladen werden.", "error");
+          }
+        }
+      } else {
+        showStatus("Browser unterstuetzt kein direktes Oeffnen. Bitte Datei auswaehlen.", "warning");
+        ui.dbFileInput.click();
+      }
+    }
+
+    async function handleDbFileSelection(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      await loadDatabaseFromFile(file, null);
+      state.canWrite = false;
+      state.dbHandle = null;
+      showStatus(`Datenbank geladen (schreibgeschuetzt): ${file.name}`, "warning");
+      ui.dbFileInput.value = "";
+    }
+
+    async function loadDatabaseFromFile(file, handle) {
+      const arrayBuffer = await file.arrayBuffer();
+      if (state.db) {
+        state.db.close();
+      }
+      state.db = new state.SQL.Database(new Uint8Array(arrayBuffer));
+      state.dbHandle = handle || state.dbHandle;
+      state.hasUnsavedChanges = false;
+      updateDbStatus(`Verbunden mit ${file.name}${handle ? " (schreibbar)" : " (nur lesen)"}`);
+      ui.reloadBtn.disabled = false;
+      loadTestsFromDb();
+      resetCurrentTest();
+    }
+
+    function updateDbStatus(message) {
+      ui.dbStatus.textContent = message;
+    }
+
+    function loadTestsFromDb() {
+      if (!state.db) return;
+      const stmt = state.db.prepare(`
+        SELECT T.idTest AS id,
+               T.typ AS name,
+               K.klassenname AS className,
+               F.fachname AS subjectName
+        FROM Test T
+        LEFT JOIN CT_KlasseLehrerFach CT ON T.idCT_KLF = CT.idCT
+        LEFT JOIN Klasse K ON CT.idKlasse = K.idKlasse
+        LEFT JOIN Fach F ON CT.idFach = F.idFach
+        ORDER BY LOWER(T.typ)
+      `);
+      const tests = [];
+      while (stmt.step()) {
+        const row = stmt.getAsObject();
+        tests.push({
+          id: Number(row.id),
+          name: row.name || "(unbenannter Test)",
+          className: row.className || "",
+          subject: row.subjectName || ""
+        });
+      }
+      stmt.free();
+      state.tests = tests;
+      renderTestList();
+    }
+
+    function renderTestList() {
+      ui.testList.innerHTML = "";
+      if (!state.tests.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-message";
+        empty.innerHTML = "<p>Keine Tests gefunden.</p><p class='hint'>Importiere einen Test oder lege einen neuen an.</p>";
+        ui.testList.appendChild(empty);
+        return;
+      }
+      state.tests.forEach((test) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "test-item";
+        if (state.currentTest && state.currentTest.id === test.id) {
+          item.classList.add("active");
+        }
+        const title = document.createElement("span");
+        title.className = "test-item-title";
+        title.textContent = test.name;
+        const meta = document.createElement("span");
+        meta.className = "test-item-meta";
+        meta.textContent = [test.subject, test.className].filter(Boolean).join("  -  ") || "ohne Zuordnung";
+        item.append(title, meta);
+        item.addEventListener("click", () => selectTest(test.id));
+        ui.testList.appendChild(item);
+      });
+    }
+
+    function selectTest(testId) {
+      if (!state.db) return;
+      const stmt = state.db.prepare(`
+        SELECT A.idAufgabe AS id,
+               A.typ AS type,
+               A.aufgabeMarkdown AS prompt,
+               A.loesung AS solution
+        FROM CT_TestAufgabeLoesung C
+        JOIN Aufgabe A ON C.idAufgabe = A.idAufgabe
+        WHERE C.idTest = ?
+        ORDER BY C.idCT
+      `);
+      stmt.bind([testId]);
+      const tasks = [];
+      while (stmt.step()) {
+        const row = stmt.getAsObject();
+        tasks.push({
+          id: Number(row.id),
+          type: row.type || "Frei",
+          prompt: normalisePrompt(row.prompt || "", row.type || "Frei"),
+          options: readOptions(row.type || "Frei", row.solution || ""),
+          solution: row.type === "Frei" ? (row.solution || "") : ""
+        });
+      }
+      stmt.free();
+
+      const testMeta = state.tests.find((test) => test.id === testId);
+      state.currentTest = {
+        id: testId,
+        name: testMeta ? testMeta.name : "",
+        subject: testMeta ? testMeta.subject : "",
+        className: testMeta ? testMeta.className : "",
+        tasks,
+        originalTaskIds: new Set(tasks.map((task) => task.id))
+      };
+      state.hasUnsavedChanges = false;
+      populateMetaInputs();
+      renderTaskEditor();
+      renderPreview();
+      renderTestList();
+      updateActionButtons();
+    }
+
+    function normalisePrompt(text, type) {
+      const trimmed = text.trim();
+      if (type === "SingleChoice" && trimmed.startsWith("[]")) {
+        return trimmed.substring(2).trimStart();
+      }
+      if (type === "MultiChoice" && trimmed.startsWith("[_]")) {
+        return trimmed.substring(3).trimStart();
+      }
+      return trimmed;
+    }
+
+    function applyPromptPrefix(text, type) {
+      const trimmed = text.trim();
+      if (type === "SingleChoice") {
+        return trimmed.startsWith("[]") ? trimmed : `[] ${trimmed}`;
+      }
+      if (type === "MultiChoice") {
+        return trimmed.startsWith("[_]") ? trimmed : `[_] ${trimmed}`;
+      }
+      return trimmed;
+    }
+
+    function readOptions(type, solutionString) {
+      if (type === "Frei") return [];
+      if (!solutionString) return [];
+      return solutionString.split("||").map((option) => option.trim());
+    }
+
+    function populateMetaInputs() {
+      if (!state.currentTest) {
+        ui.testNameInput.value = "";
+        ui.testSubjectInput.value = "";
+        ui.testClassInput.value = "";
+        return;
+      }
+      ui.testNameInput.value = state.currentTest.name || "";
+      ui.testSubjectInput.value = state.currentTest.subject || "";
+      ui.testClassInput.value = state.currentTest.className || "";
+    }
+
+    function renderTaskEditor() {
+      ui.taskContainer.innerHTML = "";
+      if (!state.currentTest) {
+        ui.taskContainer.appendChild(ui.taskEmptyState);
+        ui.taskEmptyState.style.display = "flex";
+        updateActionButtons();
+        return;
+      }
+      if (!state.currentTest.tasks.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-message";
+        empty.innerHTML = "<p>Dieser Test enthaelt noch keine Aufgaben.</p><p class='hint'>Verwende die Buttons in der Seitenleiste, um Aufgaben hinzuzufuegen.</p>";
+        ui.taskContainer.appendChild(empty);
+        updateActionButtons();
+        return;
+      }
+
+      state.currentTest.tasks.forEach((task, index) => {
+        const card = document.createElement("article");
+        card.className = "task-card";
+
+        const header = document.createElement("div");
+        header.className = "task-card-header";
+
+        const info = document.createElement("div");
+        info.style.display = "flex";
+        info.style.flexDirection = "column";
+        info.style.gap = "4px";
+
+        const number = document.createElement("span");
+        number.className = "task-number";
+        number.textContent = `Aufgabe ${index + 1}`;
+
+        const chip = document.createElement("span");
+        chip.className = "task-type-chip";
+        chip.textContent = task.type;
+
+        info.append(number, chip);
+        header.appendChild(info);
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        const upBtn = document.createElement("button");
+        upBtn.type = "button";
+        upBtn.className = "ghost";
+        upBtn.textContent = "Up";
+        upBtn.title = "Aufgabe nach oben verschieben";
+        upBtn.disabled = index === 0;
+        upBtn.addEventListener("click", () => moveTask(index, -1));
+
+        const downBtn = document.createElement("button");
+        downBtn.type = "button";
+        downBtn.className = "ghost";
+        downBtn.textContent = "Down";
+        downBtn.title = "Aufgabe nach unten verschieben";
+        downBtn.disabled = index === state.currentTest.tasks.length - 1;
+        downBtn.addEventListener("click", () => moveTask(index, 1));
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.style.background = "rgba(255, 107, 129, 0.16)";
+        deleteBtn.style.borderColor = "rgba(255, 107, 129, 0.35)";
+        deleteBtn.style.color = "#ff9aa9";
+        deleteBtn.textContent = "Loeschen";
+        deleteBtn.addEventListener("click", () => deleteTask(index));
+
+        actions.append(upBtn, downBtn, deleteBtn);
+        header.appendChild(actions);
+
+        card.appendChild(header);
+
+        const promptLabel = document.createElement("div");
+        promptLabel.className = "field-label";
+        promptLabel.textContent = "Aufgabentext";
+        const promptArea = document.createElement("textarea");
+        promptArea.value = task.prompt || "";
+        promptArea.placeholder = "Formuliere die Aufgabe...";
+        promptArea.addEventListener("input", (event) => {
+          task.prompt = event.target.value;
+          markDirty();
+          renderPreview();
+        });
+        card.append(promptLabel, promptArea);
+
+        if (task.type === "Frei") {
+          const solutionLabel = document.createElement("div");
+          solutionLabel.className = "field-label";
+          solutionLabel.textContent = "Erwartete Loesung (optional)";
+          const solutionArea = document.createElement("textarea");
+          solutionArea.value = task.solution || "";
+          solutionArea.placeholder = "Referenzantwort fuer die Korrektur...";
+          solutionArea.addEventListener("input", (event) => {
+            task.solution = event.target.value;
+            markDirty();
+            renderPreview();
+          });
+          card.append(solutionLabel, solutionArea);
+        } else {
+          const optionsLabel = document.createElement("div");
+          optionsLabel.className = "field-label";
+          optionsLabel.textContent = "Antwortoptionen";
+          const optionsList = document.createElement("div");
+          optionsList.className = "options-list";
+
+          if (!task.options.length) {
+            task.options = ["", ""];
+          }
+
+          task.options.forEach((option, optionIndex) => {
+            const row = document.createElement("div");
+            row.className = "option-row";
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = option;
+            input.placeholder = `Antwort ${optionIndex + 1}`;
+            input.addEventListener("input", (event) => {
+              task.options[optionIndex] = event.target.value;
+              markDirty();
+              renderPreview();
+            });
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.textContent = "x";
+            remove.title = "Antwort entfernen";
+            remove.disabled = task.options.length <= (task.type === "SingleChoice" ? 2 : 2);
+            remove.addEventListener("click", () => removeOption(index, optionIndex));
+            row.append(input, remove);
+            optionsList.appendChild(row);
+          });
+
+          const addOptionBtn = document.createElement("button");
+          addOptionBtn.type = "button";
+          addOptionBtn.className = "ghost";
+          addOptionBtn.textContent = "Option hinzufuegen";
+          addOptionBtn.addEventListener("click", () => addOption(index));
+
+          card.append(optionsLabel, optionsList, addOptionBtn);
+        }
+
+        ui.taskContainer.appendChild(card);
+      });
+      updateActionButtons();
+    }
+
+    function renderPreview() {
+      if (!state.currentTest) {
+        ui.previewMeta.textContent = "-";
+        ui.previewContent.innerHTML = "<p class='hint'>Keine Auswahl getroffen.</p>";
+        return;
+      }
+      const subject = state.currentTest.subject || "ohne Fach";
+      const klass = state.currentTest.className || "ohne Klasse";
+      const taskCount = state.currentTest.tasks.length;
+      ui.previewMeta.textContent = `${subject}  -  ${klass}  -  ${taskCount} Aufgabe${taskCount === 1 ? "" : "n"}`;
+
+      if (!taskCount) {
+        ui.previewContent.innerHTML = "<p class='hint'>Keine Aufgaben vorhanden.</p>";
+        return;
+      }
+
+      ui.previewContent.innerHTML = "";
+      state.currentTest.tasks.forEach((task, index) => {
+        const card = document.createElement("div");
+        card.className = "preview-card";
+
+        const title = document.createElement("h3");
+        title.textContent = `Aufgabe ${index + 1}`;
+
+        const question = document.createElement("p");
+        question.textContent = task.prompt || "(kein Aufgabentext)";
+
+        card.append(title, question);
+
+        if (task.type === "Frei") {
+          const answerHint = document.createElement("p");
+          answerHint.className = "hint";
+          answerHint.textContent = task.solution ? `Loesungshinweis: ${task.solution}` : "Antwort wird frei formuliert.";
+          card.appendChild(answerHint);
+        } else {
+          const list = document.createElement("ul");
+          list.className = "preview-options";
+          task.options.filter(Boolean).forEach((option) => {
+            const item = document.createElement("li");
+            const input = document.createElement("input");
+            input.type = task.type === "SingleChoice" ? "radio" : "checkbox";
+            input.disabled = true;
+            const label = document.createElement("span");
+            label.textContent = option;
+            item.append(input, label);
+            list.appendChild(item);
+          });
+          card.appendChild(list);
+        }
+
+        ui.previewContent.appendChild(card);
+      });
+    }
+
+    function updateMetaField(field, value) {
+      if (!state.currentTest) return;
+      if (field === "name") {
+        state.currentTest.name = value;
+        syncTestNameInList();
+      } else if (field === "subject") {
+        state.currentTest.subject = value;
+      } else if (field === "className") {
+        state.currentTest.className = value;
+      }
+      markDirty();
+      renderPreview();
+    }
+
+    function syncTestNameInList() {
+      if (!state.currentTest) return;
+      const entry = state.tests.find((test) => test.id === state.currentTest.id);
+      if (entry) {
+        entry.name = state.currentTest.name;
+        entry.subject = state.currentTest.subject;
+        entry.className = state.currentTest.className;
+        renderTestList();
+      }
+    }
+
+    function addTask(type) {
+      if (!state.currentTest) {
+        state.currentTest = {
+          id: null,
+          name: "",
+          subject: "",
+          className: "",
+          tasks: [],
+          originalTaskIds: new Set()
+        };
+        populateMetaInputs();
+      }
+      const newTask = {
+        id: null,
+        type,
+        prompt: "",
+        options: type === "Frei" ? [] : ["", ""],
+        solution: ""
+      };
+      state.currentTest.tasks.push(newTask);
+      markDirty();
+      renderTaskEditor();
+      renderPreview();
+    }
+
+    function removeOption(taskIndex, optionIndex) {
+      const task = state.currentTest.tasks[taskIndex];
+      if (!task) return;
+      task.options.splice(optionIndex, 1);
+      markDirty();
+      renderTaskEditor();
+      renderPreview();
+    }
+
+    function addOption(taskIndex) {
+      const task = state.currentTest.tasks[taskIndex];
+      if (!task) return;
+      task.options.push("");
+      markDirty();
+      renderTaskEditor();
+      renderPreview();
+    }
+
+    function moveTask(index, direction) {
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= state.currentTest.tasks.length) return;
+      const [task] = state.currentTest.tasks.splice(index, 1);
+      state.currentTest.tasks.splice(newIndex, 0, task);
+      markDirty();
+      renderTaskEditor();
+      renderPreview();
+    }
+
+    function deleteTask(index) {
+      if (!state.currentTest) return;
+      state.currentTest.tasks.splice(index, 1);
+      markDirty();
+      renderTaskEditor();
+      renderPreview();
+    }
+
+    function updateActionButtons() {
+      const hasTest = Boolean(state.currentTest);
+      ui.saveBtn.disabled = !hasTest;
+      ui.exportBtn.disabled = !hasTest;
+    }
+
+    function markDirty() {
+      state.hasUnsavedChanges = true;
+    }
+
+    function resetCurrentTest() {
+      state.currentTest = null;
+      populateMetaInputs();
+      renderTaskEditor();
+      renderPreview();
+      updateActionButtons();
+    }
+
+    function validateCurrentTest() {
+      const errors = [];
+      if (!state.currentTest) {
+        errors.push("Kein Test geladen.");
+        return errors;
+      }
+      if (!state.currentTest.name || !state.currentTest.name.trim()) {
+        errors.push("Testname darf nicht leer sein.");
+      }
+      if (!state.currentTest.subject || !state.currentTest.subject.trim()) {
+        errors.push("Fach darf nicht leer sein.");
+      }
+      if (!state.currentTest.className || !state.currentTest.className.trim()) {
+        errors.push("Klasse darf nicht leer sein.");
+      }
+      if (!state.currentTest.tasks.length) {
+        errors.push("Der Test benoetigt mindestens eine Aufgabe.");
+      }
+      state.currentTest.tasks.forEach((task, index) => {
+        if (!task.prompt || !task.prompt.trim()) {
+          errors.push(`Aufgabe ${index + 1}: Kein Aufgabentext hinterlegt.`);
+        }
+        if (task.type === "SingleChoice" || task.type === "MultiChoice") {
+          const filledOptions = task.options.filter((option) => option && option.trim());
+          if (filledOptions.length < 2) {
+            errors.push(`Aufgabe ${index + 1}: Mindestens zwei Antwortoptionen erforderlich.`);
+          }
+        }
+      });
+      return errors;
+    }
+
+    async function saveCurrentTest() {
+      if (!state.db) {
+        showStatus("Keine Datenbank verbunden.", "error");
+        return;
+      }
+      const validationErrors = validateCurrentTest();
+      if (validationErrors.length) {
+        showStatus(validationErrors.join(" "), "error", 8000);
+        return;
+      }
+
+      const test = state.currentTest;
+      try {
+        state.db.run("BEGIN TRANSACTION");
+        const classId = ensureClass(test.className.trim());
+        const subjectId = ensureSubject(test.subject.trim());
+        const ctId = ensureClassSubject(classId, subjectId);
+
+        if (!test.id) {
+          const insertTestStmt = state.db.prepare("INSERT INTO Test (typ, idCT_KLF) VALUES (?, ?)");
+          insertTestStmt.bind([test.name.trim(), ctId]);
+          insertTestStmt.step();
+          insertTestStmt.free();
+          test.id = lastInsertId();
+        } else {
+          const updateStmt = state.db.prepare("UPDATE Test SET typ = ?, idCT_KLF = ? WHERE idTest = ?");
+          updateStmt.bind([test.name.trim(), ctId, test.id]);
+          updateStmt.step();
+          updateStmt.free();
+        }
+
+        const existingLinks = fetchAll("SELECT idCT, idAufgabe FROM CT_TestAufgabeLoesung WHERE idTest = ?", [test.id]);
+        const existingMap = new Map(existingLinks.map((row) => [Number(row.idAufgabe), Number(row.idCT)]));
+        const remaining = new Set();
+
+        test.tasks.forEach((task) => {
+          const markdown = applyPromptPrefix(task.prompt || "", task.type);
+          const solution = task.type === "Frei"
+            ? (task.solution || "")
+            : task.options.filter((option) => option && option.trim()).join("||");
+          if (task.id) {
+            const updateTaskStmt = state.db.prepare("UPDATE Aufgabe SET typ = ?, aufgabeMarkdown = ?, loesung = ? WHERE idAufgabe = ?");
+            updateTaskStmt.bind([task.type, markdown, solution, task.id]);
+            updateTaskStmt.step();
+            updateTaskStmt.free();
+          } else {
+            const insertTaskStmt = state.db.prepare("INSERT INTO Aufgabe (typ, aufgabeMarkdown, loesung) VALUES (?, ?, ?)");
+            insertTaskStmt.bind([task.type, markdown, solution]);
+            insertTaskStmt.step();
+            insertTaskStmt.free();
+            task.id = lastInsertId();
+          }
+          if (!existingMap.has(task.id)) {
+            const linkStmt = state.db.prepare("INSERT INTO CT_TestAufgabeLoesung (idTest, idAufgabe, idLoesung) VALUES (?, ?, NULL)");
+            linkStmt.bind([test.id, task.id]);
+            linkStmt.step();
+            linkStmt.free();
+          }
+          remaining.add(task.id);
+        });
+
+        for (const [aufgabeId, ctId] of existingMap.entries()) {
+          if (!remaining.has(aufgabeId)) {
+            const deleteLinkStmt = state.db.prepare("DELETE FROM CT_TestAufgabeLoesung WHERE idCT = ?");
+            deleteLinkStmt.bind([ctId]);
+            deleteLinkStmt.step();
+            deleteLinkStmt.free();
+
+            const usage = fetchScalar("SELECT COUNT(*) AS cnt FROM CT_TestAufgabeLoesung WHERE idAufgabe = ?", [aufgabeId]);
+            if (usage === 0) {
+              const deleteTaskStmt = state.db.prepare("DELETE FROM Aufgabe WHERE idAufgabe = ?");
+              deleteTaskStmt.bind([aufgabeId]);
+              deleteTaskStmt.step();
+              deleteTaskStmt.free();
+            }
+          }
+        }
+
+        state.db.run("COMMIT");
+
+        const writeSuccessful = await persistDatabase();
+        state.hasUnsavedChanges = false;
+        test.originalTaskIds = new Set(test.tasks.map((task) => task.id));
+        loadTestsFromDb();
+        selectTest(test.id);
+        showStatus(writeSuccessful ? "Test gespeichert." : "Test gespeichert. Aktualisierte Datenbank wurde heruntergeladen.", writeSuccessful ? "success" : "warning");
+      } catch (error) {
+        try {
+          state.db.run("ROLLBACK");
+        } catch (rollbackError) {
+          console.error("Rollback fehlgeschlagen:", rollbackError);
+        }
+        console.error(error);
+        showStatus("Fehler beim Speichern. Details in der Konsole.", "error", 8000);
+      }
+    }
+
+    function ensureClass(className) {
+      const existing = fetchAll("SELECT idKlasse FROM Klasse WHERE LOWER(klassenname) = LOWER(?) LIMIT 1", [className]);
+      if (existing.length) {
+        return Number(existing[0].idKlasse);
+      }
+      const insertStmt = state.db.prepare("INSERT INTO Klasse (klassenname) VALUES (?)");
+      insertStmt.bind([className]);
+      insertStmt.step();
+      insertStmt.free();
+      return lastInsertId();
+    }
+
+    function ensureSubject(subjectName) {
+      const existing = fetchAll("SELECT idFach FROM Fach WHERE LOWER(fachname) = LOWER(?) LIMIT 1", [subjectName]);
+      if (existing.length) {
+        return Number(existing[0].idFach);
+      }
+      const insertStmt = state.db.prepare("INSERT INTO Fach (fachname) VALUES (?)");
+      insertStmt.bind([subjectName]);
+      insertStmt.step();
+      insertStmt.free();
+      return lastInsertId();
+    }
+
+    function ensureClassSubject(classId, subjectId) {
+      const existing = fetchAll(
+        "SELECT idCT FROM CT_KlasseLehrerFach WHERE idKlasse = ? AND idFach = ? LIMIT 1",
+        [classId, subjectId]
+      );
+      if (existing.length) {
+        return Number(existing[0].idCT);
+      }
+      const insertStmt = state.db.prepare("INSERT INTO CT_KlasseLehrerFach (idFach, idLehrer, idKlasse) VALUES (?, NULL, ?)");
+      insertStmt.bind([subjectId, classId]);
+      insertStmt.step();
+      insertStmt.free();
+      return lastInsertId();
+    }
+
+    function fetchAll(sql, params = []) {
+      const stmt = state.db.prepare(sql);
+      stmt.bind(params);
+      const rows = [];
+      while (stmt.step()) {
+        rows.push(stmt.getAsObject());
+      }
+      stmt.free();
+      return rows;
+    }
+
+    function fetchScalar(sql, params = []) {
+      const stmt = state.db.prepare(sql);
+      stmt.bind(params);
+      let value = 0;
+      if (stmt.step()) {
+        const row = stmt.getAsObject();
+        const firstKey = Object.keys(row)[0];
+        value = Number(row[firstKey] ?? 0);
+      }
+      stmt.free();
+      return value;
+    }
+
+    function lastInsertId() {
+      const result = state.db.exec("SELECT last_insert_rowid() AS id");
+      if (result && result[0] && result[0].values && result[0].values[0]) {
+        return Number(result[0].values[0][0]);
+      }
+      return null;
+    }
+
+    async function persistDatabase() {
+      const exported = state.db.export();
+      if (state.canWrite && state.dbHandle && state.dbHandle.createWritable) {
+        try {
+          if (state.dbHandle.requestPermission) {
+            const permission = await state.dbHandle.requestPermission({ mode: "readwrite" });
+            if (permission !== "granted") {
+              throw new Error("Keine Schreibberechtigung.");
+            }
+          }
+          const writable = await state.dbHandle.createWritable();
+          await writable.write(exported);
+          await writable.close();
+          return true;
+        } catch (error) {
+          console.warn("Direktes Schreiben fehlgeschlagen, fallback auf Download.", error);
+        }
+      }
+      const blob = new Blob([exported], { type: "application/octet-stream" });
+      const fileName = `lues-db-${Date.now()}.db`;
+      triggerDownload(blob, fileName);
+      return false;
+    }
+
+    function triggerDownload(blob, fileName) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function toggleImportPanel(forceState) {
+      let showImport = forceState;
+      if (typeof showImport !== "boolean") {
+        showImport = ui.importPanel.classList.contains("hidden");
+      }
+      if (showImport) {
+        ui.importPanel.classList.remove("hidden");
+        ui.testList.style.display = "none";
+        ui.toggleImportBtn.textContent = "Zurueck";
+      } else {
+        ui.importPanel.classList.add("hidden");
+        ui.testList.style.display = "flex";
+        ui.toggleImportBtn.textContent = "Importieren";
+      }
+    }
+
+    async function handleImportSelection(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const raw = JSON.parse(text);
+        const normalised = normaliseImportedTest(raw);
+        await importTest(normalised);
+        toggleImportPanel(false);
+        showStatus(`Test "${normalised.name}" importiert.`, "success");
+      } catch (error) {
+        console.error(error);
+        showStatus("Import fehlgeschlagen. Bitte JSON-Struktur pruefen.", "error", 8000);
+      } finally {
+        ui.importFileInput.value = "";
+      }
+    }
+
+    function normaliseImportedTest(data) {
+      if (!data || typeof data !== "object") {
+        throw new Error("Ungueltiges JSON.");
+      }
+      const name = (data.name || data.testName || "").toString().trim();
+      const subject = (data.subject || data.fach || "").toString().trim();
+      const className = (data.class || data.klasse || "").toString().trim();
+      if (!name || !subject || !className) {
+        throw new Error("Name, Fach oder Klasse fehlen im JSON.");
+      }
+      const tasksSource = Array.isArray(data.tasks) ? data.tasks : [];
+      if (!tasksSource.length) {
+        throw new Error("Keine Aufgaben im JSON gefunden.");
+      }
+      const tasks = tasksSource.map((task, index) => {
+        const type = (task.type || task.typ || "Frei").toString();
+        const supportedTypes = ["Frei", "SingleChoice", "MultiChoice"];
+        if (!supportedTypes.includes(type)) {
+          throw new Error(`Aufgabe ${index + 1}: Unbekannter Typ "${type}".`);
+        }
+        const prompt = (task.prompt || task.frage || task.question || "").toString().trim();
+        if (!prompt) {
+          throw new Error(`Aufgabe ${index + 1}: Kein Aufgabentext.`);
+        }
+        const solution = (task.solution || task.loesung || "").toString();
+        const options = Array.isArray(task.options) ? task.options.map((option) => option.toString()) : [];
+        return {
+          id: null,
+          type,
+          prompt,
+          solution: type === "Frei" ? solution : "",
+          options: type === "Frei" ? [] : (options.length ? options : ["", ""])
+        };
+      });
+      return { name, subject, className, tasks };
+    }
+
+    async function importTest(testData) {
+      if (!state.db) {
+        throw new Error("Keine Datenbank verbunden.");
+      }
+      const existing = fetchAll("SELECT idTest FROM Test WHERE typ = ? LIMIT 1", [testData.name]);
+      state.currentTest = {
+        id: existing.length ? Number(existing[0].idTest) : null,
+        name: testData.name,
+        subject: testData.subject,
+        className: testData.className,
+        tasks: testData.tasks,
+        originalTaskIds: new Set(existing.length ? fetchAll(
+          "SELECT idAufgabe FROM CT_TestAufgabeLoesung WHERE idTest = ?",
+          [Number(existing[0].idTest)]
+        ).map((row) => Number(row.idAufgabe)) : [])
+      };
+      populateMetaInputs();
+      renderTaskEditor();
+      renderPreview();
+      await saveCurrentTest();
+    }
+
+    function exportCurrentTest() {
+      if (!state.currentTest) {
+        showStatus("Kein Test zum Exportieren vorhanden.", "warning");
+        return;
+      }
+      const validationErrors = validateCurrentTest();
+      if (validationErrors.length) {
+        showStatus(validationErrors.join(" "), "error", 8000);
+        return;
+      }
+      const payload = buildExportJson(state.currentTest);
+      const fileName = `${slugify(state.currentTest.name || "test")}.json`;
+      const json = JSON.stringify(payload, null, 2);
+      const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+      triggerDownload(blob, fileName);
+      showStatus("JSON-Export wurde heruntergeladen.", "success");
+    }
+
+    function buildExportJson(test) {
+      const sanitize = (value) => (value || "").toString().trim();
+      return {
+        name: sanitize(test.name),
+        subject: sanitize(test.subject),
+        className: sanitize(test.className),
+        tasks: test.tasks.map((task) => {
+          const type = (task.type || "Frei").toString();
+          const exported = {
+            type,
+            prompt: sanitize(task.prompt),
+            solution: "",
+            options: []
+          };
+          if (type === "Frei") {
+            exported.solution = sanitize(task.solution);
+            return exported;
+          }
+          const options = Array.isArray(task.options)
+            ? task.options
+                .map((option) => sanitize(option))
+                .filter((option) => option.length)
+            : [];
+          exported.options = options;
+          return exported;
+        })
+      };
+    }
+
+    function slugify(text) {
+      return (text || "")
+        .toString()
+        .normalize("NFKD")
+        .replace(/[^\w\s-]/g, "")
+        .trim()
+        .replace(/[\s_-]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .toLowerCase() || "test";
+    }
+
+    function showStatus(message, tone = "info", duration = 5000) {
+      ui.statusMessage.textContent = message;
+      ui.statusBar.classList.remove("success", "error", "warning");
+      if (tone === "success") ui.statusBar.classList.add("success");
+      if (tone === "error") ui.statusBar.classList.add("error");
+      if (tone === "warning") ui.statusBar.classList.add("warning");
+      ui.statusBar.classList.add("visible");
+      if (state.statusTimer) {
+        clearTimeout(state.statusTimer);
+      }
+      if (duration > 0) {
+        state.statusTimer = setTimeout(() => {
+          ui.statusBar.classList.remove("visible");
+        }, duration);
+      }
+    }
+  </script>
+</body>
+</html>

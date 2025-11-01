@@ -1,0 +1,8 @@
+# einzelne Dateien
+data/lues.db
+data/log.txt
+
+#currently in main branch the sub dictionary classes is named bin -> @TODO rename later in before merging
+classes/ 
+data/tokenlists
+
