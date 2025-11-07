@@ -1,8 +1,13 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-rem Immer vom Skriptordner aus arbeiten
+rem --- Immer vom Skriptordner aus arbeiten
 pushd "%~dp0"
+
+rem --- Codepage/Encoding sichern und auf UTF-8 umstellen (wichtig für Umlaute)
+for /f "tokens=2 delims=:." %%A in ('chcp') do set "OLDCP=%%A"
+set "OLDCP=%OLDCP: =%"
+chcp 65001 >nul
 
 set "MODE=GUI"
 set "ARG=%~1"
@@ -31,20 +36,20 @@ set "EXITCODE=0"
 if exist "%OUT_DIR%" rmdir /s /q "%OUT_DIR%"
 mkdir "%OUT_DIR%" || goto :finalize
 
-rem === Alle .java-Dateien sammeln: Backslashes -> Forward-Slashes, und quoten ===
-(
+rem === Alle .java-Dateien sammeln (Pfadtrenner vereinheitlichen) ===
+> "%SRC_LIST%" (
   for /r "src" %%F in (*.java) do (
     set "p=%%~fF"
     set "p=!p:\=/!"
     echo "!p!"
   )
-) > "%SRC_LIST%" || (
+) || (
     set "EXITCODE=1"
     goto :finalize
 )
 
 rem === Kompilieren ===
-javac -d "%OUT_DIR%" @"%SRC_LIST%" || (
+javac -J-Dfile.encoding=UTF-8 -d "%OUT_DIR%" @"%SRC_LIST%" || (
     set "EXITCODE=1"
     goto :finalize
 )
@@ -66,4 +71,12 @@ echo   quickstartClient.bat -nogui     - startet den Konsolen-Client.  ^(Alias: 
 echo   quickstartClient.bat -help      - zeigt diese Hilfe direkt an.
 echo.
 echo Beispiel: quickstartClient.bat -nogui
-exit /b 0
+set "EXITCODE=0"
+goto :finalize
+
+:finalize
+rem --- Codepage wiederherstellen, Verzeichnis zuruecksetzen, sauber beenden
+if defined OLDCP chcp %OLDCP% >nul
+popd
+exit /b %EXITCODE%
+
